@@ -25,8 +25,8 @@ RoutePlanner::RoutePlanner(RouteModel &model, float start_x, float start_y, floa
 
 float RoutePlanner::CalculateHValue(RouteModel::Node const *node) {
      //float distance_to_end_node = (*node).distance(*end_node);
-     float distance_to_end_node = this->end_node->distance(*node);
-     return distance_to_end_node;
+     //float distance_to_end_node = this->end_node->distance(*node);
+     return this->end_node->distance(*node);
 }
 
 
@@ -57,13 +57,15 @@ void RoutePlanner::AddNeighbors(RouteModel::Node *current_node) {
 // - Remove that node from the open_list.
 // - Return the pointer.
 
-bool FValueComparison(const RouteModel::Node *a, const RouteModel::Node *b) {
-    return  ( (a->g_value + a->h_value) > (b->g_value + b->h_value) );   
-}
+  // bool FValueComparison(const RouteModel::Node *a, const RouteModel::Node *b) {
+  //     return  ( (a->g_value + a->h_value) > (b->g_value + b->h_value) );   
+  // }
 
 RouteModel::Node *RoutePlanner::NextNode() {
-  
-  std::sort(open_list.begin(), open_list.end(), FValueComparison);
+                                                //updated due to feedback
+  std::sort(open_list.begin(), open_list.end(),
+             [](const RouteModel::Node *a, const RouteModel::Node *b) { return (a->h_value + a->g_value) > (b->h_value + b->g_value); }
+            );
   RouteModel::Node *node = open_list.back();
   open_list.pop_back();
   return node;
@@ -90,7 +92,8 @@ std::vector<RouteModel::Node> RoutePlanner::ConstructFinalPath(RouteModel::Node 
     std::vector<RouteModel::Node> path_found;
     //bool foundStartNode = (start_node-> == current_node->x );
     // TODO: Implement your solution here.
-    while (!IsTargetNode(start_node, current_node)) {
+    //while (!IsTargetNode(start_node, current_node)) {
+      while (current_node != start_node){
         path_found.push_back(*current_node);
         distance += current_node->distance(*current_node->parent);
         current_node = current_node->parent;
@@ -116,7 +119,7 @@ void RoutePlanner::AStarSearch() {
     RouteModel::Node *current_node = nullptr;
 
     // TODO: Implement your solution here.
-    *current_node = *start_node;
+    current_node = start_node;
     current_node->visited = true;
     open_list.push_back(current_node);
 
